@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ELITE FOOTIES | Premium Footwear Store</title>
+<style>
+  :root{
+    --black:#0b0b0b;
+    --yellow:#FFC107;
+    --yellow-deep:#e6a800;
+    --white:#ffffff;
+    --grey:#6b6b6b;
+    --light-grey:#f4f4f4;
+    --radius:18px;
+    --shadow:0 10px 30px rgba(0,0,0,0.08);
+    --shadow-hover:0 18px 40px rgba(0,0,0,0.14);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    font-family:'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+    background:var(--white);
+    color:var(--black);
+    overflow-x:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+  img{max-width:100%; display:block;}
+  a{text-decoration:none; color:inherit;}
+  button{font-family:inherit; cursor:pointer; border:none;}
+
+  /* ===== NAVBAR ===== */
+  .navbar{
+    position:sticky; top:0; z-index:1000;
+    background:rgba(255,255,255,0.92);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid #eee;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 22px;
+  }
+  .logo-wrap{display:flex; align-items:center; gap:10px; cursor:pointer;}
+  .logo-icon{
+    width:38px; height:38px; position:relative;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .logo-icon svg{width:34px; height:34px;}
+  .logo-text{
+    font-weight:800; letter-spacing:0.5px; font-size:1.15rem;
+    display:flex; flex-direction:column; line-height:1;
+  }
+  .logo-text .top{color:var(--black);}
+  .logo-text .top span{color:var(--yellow-deep);}
+  .logo-text .slogan-mini{
+    font-size:0.58rem; font-weight:600; letter-spacing:1.5px;
+    color:var(--grey); text-transform:uppercase; margin-top:3px;
+  }
+  .nav-links{display:flex; gap:22px; font-weight:600; font-size:0.92rem;}
+  .nav-links a{
+    padding:8px 4px; border-bottom:2px solid transparent; transition:all .25s;
+  }
+  .nav-links a:hover{border-bottom:2px solid var(--yellow); color:var(--yellow-deep);}
+  .nav-cart-btn{
+    background:var(--black); color:var(--white); padding:9px 16px;
+    border-radius:30px; font-weight:700; font-size:0.85rem;
+    transition:transform .2s, background .2s;
+  }
+  .nav-cart-btn:hover{background:var(--yellow-deep); color:var(--black); transform:translateY(-2px);}
+
+  @media (max-width:700px){
+    .nav-links{display:none;}
+  }
+
+  /* ===== BACK BUTTON ===== */
+  .back-bar{
+    display:none;
+    background:var(--black);
+    padding:14px 20px;
+  }
+  .back-bar.show{display:flex;}
+  .back-btn{
+    background:var(--yellow); color:var(--black); font-weight:800;
+    padding:10px 22px; border-radius:30px; font-size:0.95rem;
+    display:flex; align-items:center; gap:8px;
+    transition:transform .2s;
+  }
+  .back-btn:hover{transform:translateX(-4px);}
+
+  /* ===== PAGE SWITCHING ===== */
+  .page{display:none;}
+  .page.active{display:block; animation:fadeIn .5s ease;}
+  @keyframes fadeIn{from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);}}
+
+  /* ===== HERO ===== */
+  .hero{
+    background:
+      radial-gradient(circle at 15% 20%, rgba(255,193,7,0.18), transparent 45%),
+      radial-gradient(circle at 85% 80%, rgba(255,193,7,0.12), transparent 50%),
+      var(--white);
+    padding:70px 24px 60px;
+    text-align:center;
+    position:relative;
+  }
+  .hero-logo{
+    display:flex; flex-direction:column; align-items:center; gap:10px; margin-bottom:18px;
+  }
+  .hero-logo .icon-big svg{width:64px; height:64px;}
+  .hero-brand{
+    font-size:2.1rem; font-weight:900; letter-spacing:1px;
+  }
+  .hero-brand span{color:var(--yellow-deep);}
+  .hero-slogan{
+    font-size:1rem; font-weight:700; letter-spacing:3px; color:var(--black);
+    text-transform:uppercase; margin-top:2px;
+    border-bottom:3px solid var(--yellow); display:inline-block; padding-bottom:4px;
+  }
+  .hero h1{
+    font-size:1.9rem; font-weight:800; margin:28px 0 14px; line-height:1.3;
+  }
+  .hero p{
+    max-width:520px; margin:0 auto 30px; color:var(--grey); font-size:1rem; line-height:1.6;
+  }
+  .shop-now-btn{
+    background:var(--yellow); color:var(--black); font-weight:800;
+    padding:16px 38px; border-radius:40px; font-size:1rem;
+    box-shadow:0 12px 24px rgba(255,193,7,0.35);
+    transition:transform .25s, box-shadow .25s;
+    display:inline-block;
+  }
+  .shop-now-btn:hover{transform:translateY(-3px) scale(1.03); box-shadow:0 16px 30px rgba(255,193,7,0.45);}
+
+  /* ===== SECTIONS ===== */
+  section{padding:60px 20px;}
+  .section-title{
+    text-align:center; font-size:1.6rem; font-weight:800; margin-bottom:8px;
+  }
+  .section-sub{
+    text-align:center; color:var(--grey); font-size:0.95rem; margin-bottom:40px;
+  }
+
+  /* ===== COLLECTIONS ===== */
+  .collections{
+    display:grid; grid-template-columns:1fr; gap:26px; max-width:1000px; margin:0 auto;
+  }
+  @media (min-width:760px){
+    .collections{grid-template-columns:1fr 1fr;}
+  }
+  .collection-card{
+    background:var(--white); border-radius:var(--radius); overflow:hidden;
+    box-shadow:var(--shadow); position:relative;
+    opacity:0; transform:translateY(30px); transition:all .3s ease;
+  }
+  .collection-card.in-view{opacity:1; transform:translateY(0);}
+  .collection-card:hover{box-shadow:var(--shadow-hover); transform:translateY(-6px);}
+  .collection-img-wrap{
+    height:280px; overflow:hidden; position:relative;
+  }
+  .collection-img-wrap img{
+    width:100%; height:100%; object-fit:cover; transition:transform .5s ease;
+  }
+  .collection-card:hover .collection-img-wrap img{transform:scale(1.07);}
+  .collection-info{
+    padding:22px; display:flex; align-items:center; justify-content:space-between;
+    flex-wrap:wrap; gap:14px;
+  }
+  .collection-info h3{font-size:1.2rem; font-weight:800;}
+  .collection-btn{
+    background:var(--black); color:var(--white); font-weight:700;
+    padding:12px 26px; border-radius:30px; font-size:0.85rem;
+    transition:background .25s, transform .2s;
+  }
+  .collection-btn:hover{background:var(--yellow-deep); color:var(--black); transform:translateY(-2px);}
+
+  /* ===== FEATURES ===== */
+  .features-grid{
+    display:grid; grid-template-columns:1fr; gap:18px; max-width:1000px; margin:0 auto;
+  }
+  @media (min-width:600px){ .features-grid{grid-template-columns:1fr 1fr;} }
+  @media (min-width:900px){ .features-grid{grid-template-columns:1fr 1fr 1fr;} }
+  .feature-card{
+    background:var(--light-grey); border-radius:var(--radius); padding:26px;
+    display:flex; align-items:center; gap:14px;
+    opacity:0; transform:translateY(24px); transition:all .35s ease;
+  }
+  .feature-card.in-view{opacity:1; transform:translateY(0);}
+  .feature-check{
+    min-width:38px; height:38px; border-radius:50%; background:var(--yellow);
+    display:flex; align-items:center; justify-content:center; font-weight:900; font-size:1rem;
+  }
+  .feature-card span.label{font-weight:700; font-size:0.98rem;}
+
+  /* ===== PRODUCT LISTING ===== */
+  .listing-header{
+    text-align:center; padding:34px 20px 10px;
+  }
+  .listing-header h2{font-size:1.7rem; font-weight:900;}
+  .listing-header p{color:var(--grey); margin-top:6px;}
+  .price-group{margin:34px auto 0; max-width:1100px; padding:0 20px;}
+  .price-group-title{
+    display:inline-block; background:var(--black); color:var(--yellow);
+    font-weight:800; padding:8px 20px; border-radius:30px; margin-bottom:20px; font-size:0.95rem;
+  }
+  .product-grid{
+    display:grid; grid-template-columns:repeat(2,1fr); gap:18px;
+  }
+  @media (min-width:640px){ .product-grid{grid-template-columns:repeat(3,1fr);} }
+  @media (min-width:900px){ .product-grid{grid-template-columns:repeat(4,1fr);} }
+  .product-card{
+    background:var(--white); border:1px solid #eee; border-radius:var(--radius);
+    overflow:hidden; box-shadow:var(--shadow); transition:all .3s ease;
+    display:flex; flex-direction:column;
+  }
+  .product-card:hover{box-shadow:var(--shadow-hover); transform:translateY(-5px);}
+  .product-img-wrap{aspect-ratio:1/1; overflow:hidden; background:var(--light-grey);}
+  .product-img-wrap img{width:100%; height:100%; object-fit:cover; transition:transform .4s;}
+  .product-card:hover .product-img-wrap img{transform:scale(1.06);}
+  .product-body{padding:14px; display:flex; flex-direction:column; gap:10px; flex:1;}
+  .product-price{font-weight:900; font-size:1.05rem;}
+  .buy-btn{
+    background:var(--yellow); color:var(--black); font-weight:800;
+    padding:10px 0; border-radius:24px; font-size:0.88rem; margin-top:auto;
+    transition:background .2s, transform .2s;
+  }
+  .buy-btn:hover{background:var(--yellow-deep); transform:translateY(-2px);}
+
+  /* ===== ORDER FORM ===== */
+  .order-page{max-width:520px; margin:0 auto; padding:30px 20px 70px;}
+  .order-product-preview{
+    display:flex; gap:16px; align-items:center; background:var(--light-grey);
+    border-radius:var(--radius); padding:16px; margin-bottom:26px;
+  }
+  .order-product-preview img{
+    width:90px; height:90px; object-fit:cover; border-radius:12px;
+  }
+  .order-product-preview .op-info h4{font-size:0.85rem; color:var(--grey); font-weight:600;}
+  .order-product-preview .op-info .op-price{font-size:1.3rem; font-weight:900; margin-top:4px;}
+  .order-form-title{font-size:1.4rem; font-weight:800; margin-bottom:18px;}
+  .form-group{margin-bottom:16px;}
+  .form-group label{
+    display:block; font-weight:700; font-size:0.85rem; margin-bottom:6px;
+  }
+  .form-group input, .form-group select{
+    width:100%; padding:13px 14px; border-radius:12px; border:1.5px solid #ddd;
+    font-size:0.95rem; transition:border .2s;
+    background:var(--white); color:var(--black);
+  }
+  .form-group input:focus, .form-group select:focus{
+    outline:none; border-color:var(--yellow-deep);
+  }
+  .form-error{color:#d32f2f; font-size:0.78rem; margin-top:5px; display:none;}
+  .form-error.show{display:block;}
+  .submit-order-btn{
+    width:100%; background:var(--black); color:var(--white); font-weight:800;
+    padding:16px 0; border-radius:30px; font-size:1rem; margin-top:10px;
+    display:flex; align-items:center; justify-content:center; gap:10px;
+    transition:background .25s, transform .2s;
+  }
+  .submit-order-btn:hover{background:var(--yellow-deep); color:var(--black); transform:translateY(-2px);}
+  .whatsapp-icon{width:20px; height:20px;}
+
+  /* ===== FOOTER ===== */
+  footer{
+    background:var(--black); color:var(--white); padding:50px 20px 30px; text-align:center;
+  }
+  footer .footer-logo{font-size:1.4rem; font-weight:900; margin-bottom:6px;}
+  footer .footer-logo span{color:var(--yellow);}
+  footer .footer-slogan{
+    font-weight:700; letter-spacing:2px; color:var(--yellow); font-size:0.85rem; margin-bottom:24px;
+  }
+  footer .hours{margin-bottom:20px;}
+  footer .hours h4{font-size:0.85rem; text-transform:uppercase; letter-spacing:1px; color:#aaa; margin-bottom:6px;}
+  footer .hours p{font-weight:700;}
+  footer .tagline{color:#aaa; font-size:0.85rem; margin-bottom:18px;}
+  footer .copyright{color:#777; font-size:0.78rem; border-top:1px solid #222; padding-top:18px;}
+  footer .made-with{color:#555; font-size:0.75rem; margin-top:6px;}
+
+  /* ===== TOAST ===== */
+  .toast{
+    position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px);
+    background:var(--black); color:var(--white); padding:14px 24px; border-radius:30px;
+    font-weight:700; font-size:0.9rem; opacity:0; pointer-events:none; transition:all .3s;
+    z-index:2000; box-shadow:0 10px 30px rgba(0,0,0,0.3);
+  }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="logo-wrap" onclick="goHome()">
+    <div class="logo-icon">
+      <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M6 40 C6 34, 12 34, 16 31 C20 28, 24 20, 30 18 C34 16.5, 38 18, 40 21 C42 24, 44 27, 50 28 C55 29, 58 32, 58 38 C58 42, 55 44, 50 44 L10 44 C7 44, 6 42, 6 40 Z" fill="#0b0b0b"/>
+        <circle cx="34" cy="24" r="2.2" fill="#FFC107"/>
+        <path d="M10 44 L10 40 C10 40 20 41 30 40 C40 39 50 41 58 38" stroke="#FFC107" stroke-width="1.5" fill="none"/>
+      </svg>
+    </div>
+    <div class="logo-text">
+      <div class="top">ELITE <span>FOOTIES</span></div>
+      <div class="slogan-mini">Step Into Style</div>
+    </div>
+  </div>
+  <div class="nav-links">
+    <a onclick="goHome()">Home</a>
+    <a onclick="showPage('men')">Men</a>
+    <a onclick="showPage('women')">Women</a>
+  </div>
+  <div class="nav-cart-btn" onclick="showPage('men')">Shop</div>
+</nav>
+
+<!-- BACK BAR -->
+<div class="back-bar" id="backBar">
+  <button class="back-btn" onclick="goBack()">&#8592; Back</button>
+</div>
+
+<!-- HOME PAGE -->
+<div class="page active" id="page-home">
+
+  <section class="hero">
+    <div class="hero-logo">
+      <div class="icon-big">
+        <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M6 40 C6 34, 12 34, 16 31 C20 28, 24 20, 30 18 C34 16.5, 38 18, 40 21 C42 24, 44 27, 50 28 C55 29, 58 32, 58 38 C58 42, 55 44, 50 44 L10 44 C7 44, 6 42, 6 40 Z" fill="#0b0b0b"/>
+          <circle cx="34" cy="24" r="2.4" fill="#FFC107"/>
+          <path d="M10 44 L10 40 C10 40 20 41 30 40 C40 39 50 41 58 38" stroke="#FFC107" stroke-width="1.6" fill="none"/>
+        </svg>
+      </div>
+      <div class="hero-brand">ELITE <span>FOOTIES</span></div>
+      <div class="hero-slogan">Step Into Style</div>
+    </div>
+    <h1>Welcome to ELITE FOOTIES</h1>
+    <p>Discover premium men's and women's footwear at affordable prices. Shop with confidence, enjoy quality products, and place your order easily through WhatsApp.</p>
+    <a class="shop-now-btn" href="#collections">Shop Now</a>
+  </section>
+
+  <section id="collections">
+    <h2 class="section-title">Our Collections</h2>
+    <p class="section-sub">Handpicked styles for him and her</p>
+    <div class="collections">
+      <div class="collection-card">
+        <div class="collection-img-wrap">
+          <img loading="lazy" src="https://i.postimg.cc/sgZcS4Bp/IMG-20260728-WA0041.jpg" alt="Men's Collection">
+        </div>
+        <div class="collection-info">
+          <h3>Men's Collection</h3>
+          <button class="collection-btn" onclick="showPage('men')">SHOP MEN</button>
+        </div>
+      </div>
+      <div class="collection-card">
+        <div class="collection-img-wrap">
+          <img loading="lazy" src="https://i.postimg.cc/VLqpWWrp/IMG-20260728-WA0049.jpg" alt="Women's Collection">
+        </div>
+        <div class="collection-info">
+          <h3>Women's Collection</h3>
+          <button class="collection-btn" onclick="showPage('women')">SHOP WOMEN</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="section-title">Why Shop With Us</h2>
+    <p class="section-sub">Premium quality, easy ordering, fast delivery</p>
+    <div class="features-grid" id="featuresGrid">
+      <div class="feature-card"><div class="feature-check">&#10003;</div><span class="label">Premium Quality Shoes</span></div>
+      <div class="feature-card"><div class="feature-check">&#10003;</div><span class="label">Affordable Prices</span></div>
+      <div class="feature-card"><div class="feature-check">&#10003;</div><span class="label">Easy Shopping</span></div>
+      <div class="feature-card"><div class="feature-check">&#10003;</div><span class="label">Fast Delivery</span></div>
+      <div class="feature-card"><div class="feature-check">&#10003;</div><span class="label">Easy WhatsApp Ordering</span></div>
+      <div class="feature-card"><div class="feature-check">&#10003;</div><span class="label">Friendly Customer Service</span></div>
+    </div>
+  </section>
+</div>
+
+<!-- MEN'S PAGE -->
+<div class="page" id="page-men">
+  <div class="listing-header">
+    <h2>Men's Collection</h2>
+    <p>Sorted from lowest to highest price</p>
+  </div>
+  <div id="menListing"></div>
+</div>
+
+<!-- WOMEN'S PAGE -->
+<div class="page" id="page-women">
+  <div class="listing-header">
+    <h2>Women's Collection</h2>
+    <p>Sorted from lowest to highest price</p>
+  </div>
+  <div id="womenListing"></div>
+</div>
+
+<!-- ORDER FORM PAGE -->
+<div class="page" id="page-order">
+  <div class="order-page">
+    <div class="order-product-preview">
+      <img id="orderImg" src="" alt="Selected product">
+      <div class="op-info">
+        <h4 id="orderCategory">Collection</h4>
+        <div class="op-price" id="orderPrice">GHS 0</div>
+      </div>
+    </div>
+    <h3 class="order-form-title">Complete Your Order</h3>
+    <form id="orderForm" novalidate>
+      <div class="form-group">
+        <label>Full Name</label>
+        <input type="text" id="custName" placeholder="e.g. Ama Mensah">
+        <div class="form-error" id="err-custName">Please enter your full name.</div>
+      </div>
+      <div class="form-group">
+        <label>Location</label>
+        <input type="text" id="custLocation" placeholder="e.g. Accra, East Legon">
+        <div class="form-error" id="err-custLocation">Please enter your delivery location.</div>
+      </div>
+      <div class="form-group">
+        <label>Phone Number</label>
+        <input type="tel" id="custPhone" placeholder="e.g. 0550000000">
+        <div class="form-error" id="err-custPhone">Please enter a valid phone number.</div>
+      </div>
+      <div class="form-group">
+        <label>Foot Size</label>
+        <input type="text" id="custSize" placeholder="e.g. 42">
+        <div class="form-error" id="err-custSize">Please enter your foot size.</div>
+      </div>
+      <div class="form-group">
+        <label>Quantity</label>
+        <input type="number" id="custQty" min="1" value="1">
+        <div class="form-error" id="err-custQty">Please enter a valid quantity.</div>
+      </div>
+      <button type="submit" class="submit-order-btn">
+        <svg class="whatsapp-icon" viewBox="0 0 32 32" fill="currentColor"><path d="M16.001 2.667C8.637 2.667 2.667 8.637 2.667 16c0 2.523.7 4.882 1.916 6.897L2.667 29.333l6.6-1.884A13.29 13.29 0 0016.001 29.333c7.363 0 13.332-5.97 13.332-13.333S23.364 2.667 16.001 2.667zm0 24.286c-2.24 0-4.33-.658-6.086-1.79l-.437-.26-4.02 1.148 1.176-3.917-.285-.452a10.885 10.885 0 01-1.68-5.682c0-6.033 4.9-10.933 10.933-10.933 6.033 0 10.933 4.9 10.933 10.933 0 6.033-4.9 10.953-10.933 10.953h-.001zm5.98-8.187c-.328-.164-1.94-.957-2.24-1.066-.301-.11-.52-.164-.738.164-.219.328-.848 1.066-1.04 1.285-.192.219-.383.246-.711.082-.328-.164-1.386-.51-2.64-1.628-.976-.87-1.635-1.945-1.827-2.273-.192-.328-.02-.505.144-.669.148-.147.328-.383.492-.574.164-.192.219-.328.328-.547.11-.219.055-.41-.027-.574-.082-.164-.738-1.777-1.012-2.434-.266-.64-.535-.553-.738-.563l-.629-.011c-.219 0-.574.082-.875.41-.301.328-1.148 1.121-1.148 2.734 0 1.613 1.176 3.172 1.34 3.39.164.219 2.313 3.532 5.605 4.953.783.338 1.393.54 1.87.69.786.25 1.502.215 2.068.13.631-.094 1.94-.793 2.213-1.559.273-.766.273-1.422.191-1.559-.082-.137-.301-.219-.629-.383z"/></svg>
+        Send Order via WhatsApp
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- FOOTER (shown on home page only, moves with pages) -->
+<footer>
+  <div class="footer-logo">ELITE <span>FOOTIES</span></div>
+  <div class="footer-slogan">STEP INTO STYLE</div>
+  <div class="hours">
+    <h4>Business Hours</h4>
+    <p>Monday – Sunday</p>
+    <p>8:00 AM – 10:00 PM</p>
+  </div>
+  <div class="tagline">Premium Footwear &bull; Affordable Prices &bull; Fast Delivery</div>
+  <div class="copyright">&copy; 2026 ELITE FOOTIES. All Rights Reserved.</div>
+  <div class="made-with">Designed with &#10084; for easy shopping.</div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ===================== PRODUCT DATA ===================== */
+const menProducts = [
+  { price:70,  category:"Men's Collection", img:"https://i.postimg.cc/Cxt2pK8d/IMG-20260728-WA0046.jpg" },
+  { price:80,  category:"Men's Collection", img:"https://i.postimg.cc/90vTn9Dw/IMG-20260729-WA0002.jpg" },
+  { price:80,  category:"Men's Collection", img:"https://i.postimg.cc/Fzf3ppHc/IMG-20260729-WA0004.jpg" },
+  { price:100, category:"Men's Collection", img:"https://i.postimg.cc/sgZcS4Bp/IMG-20260728-WA0041.jpg" },
+  { price:100, category:"Men's Collection", img:"https://i.postimg.cc/0yJfm06Y/IMG-20260728-WA0042.jpg" },
+  { price:100, category:"Men's Collection", img:"https://i.postimg.cc/vZ6z9t17/IMG-20260728-WA0043.jpg" },
+  { price:100, category:"Men's Collection", img:"https://i.postimg.cc/t4V5PN1F/IMG-20260728-WA0044.jpg" },
+  { price:100, category:"Men's Collection", img:"https://i.postimg.cc/LsKVVgfg/IMG-20260728-WA0045.jpg" },
+  { price:100, category:"Men's Collection", img:"https://i.postimg.cc/hGW00QxJ/IMG-20260728-WA0047.jpg" },
+  { price:100, category:"Men's Collection", img:"https://i.postimg.cc/L8ZTf3qB/IMG-20260728-WA0048.jpg" },
+  { price:100, category:"Men's Collection", img:"https://i.postimg.cc/6QJhh4R2/IMG-20260728-WA0053.jpg" },
+  { price:100, category:"Men's Collection", img:"https://i.postimg.cc/HsD93Gbr/IMG-20260729-WA0003.jpg" },
+];
+
+const womenProducts = [
+  { price:30,  category:"Women's Collection", img:"https://i.postimg.cc/Hk5wjWKj/IMG-20260728-WA0051.jpg" },
+  { price:30,  category:"Women's Collection", img:"https://i.postimg.cc/rFRWYFqQ/IMG-20260728-WA0052(1).jpg" },
+  { price:60,  category:"Women's Collection", img:"https://i.postimg.cc/1zk8PSm5/IMG-20260728-WA0040.jpg" },
+  { price:60,  category:"Women's Collection", img:"https://i.postimg.cc/VNxJ1wfm/IMG-20260729-WA0000.jpg" },
+  { price:90,  category:"Women's Collection", img:"https://i.postimg.cc/sDbdTgwZ/IMG-20260716-WA0027.jpg" },
+  { price:90,  category:"Women's Collection", img:"https://i.postimg.cc/ZKXtw5Vv/IMG-20260728-WA0039.jpg" },
+  { price:90,  category:"Women's Collection", img:"https://i.postimg.cc/yY24L8vB/IMG-20260729-WA0005.jpg" },
+  { price:100, category:"Women's Collection", img:"https://i.postimg.cc/0Nx44MmM/IMG-20260716-WA0028.jpg" },
+  { price:120, category:"Women's Collection", img:"https://i.postimg.cc/VLqpWWrp/IMG-20260728-WA0049.jpg" },
+  { price:120, category:"Women's Collection", img:"https://i.postimg.cc/hPL611QR/IMG-20260728-WA0050.jpg" },
+  { price:170, category:"Women's Collection", img:"https://i.postimg.cc/d3m6rnHd/IMG-20260728-WA0054.jpg" },
+];
+
+const WHATSAPP_NUMBER = "233535535155";
+
+/* ===================== NAVIGATION (SPA) ===================== */
+let navHistory = ['home'];
+let selectedProduct = null;
+
+function renderListing(containerId, products){
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+  const groups = {};
+  products.forEach(p => {
+    if(!groups[p.price]) groups[p.price] = [];
+    groups[p.price].push(p);
+  });
+  const prices = Object.keys(groups).map(Number).sort((a,b)=>a-b);
+  prices.forEach(price => {
+    const groupEl = document.createElement('div');
+    groupEl.className = 'price-group';
+    groupEl.innerHTML = `<div class="price-group-title">GHS ${price}</div>`;
+    const grid = document.createElement('div');
+    grid.className = 'product-grid';
+    groups[price].forEach(p => {
+      const card = document.createElement('div');
+      card.className = 'product-card';
+      card.innerHTML = `
+        <div class="product-img-wrap"><img loading="lazy" src="${p.img}" alt="${p.category} shoe GHS ${p.price}"></div>
+        <div class="product-body">
+          <div class="product-price">GHS ${p.price}</div>
+          <button class="buy-btn">BUY</button>
+        </div>`;
+      card.querySelector('.buy-btn').addEventListener('click', () => openOrderForm(p));
+      grid.appendChild(card);
+    });
+    groupEl.appendChild(grid);
+    container.appendChild(groupEl);
+  });
+}
+
+function showPage(pageName, isBack){
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + pageName).classList.add('active');
+  const backBar = document.getElementById('backBar');
+  if(pageName === 'home'){
+    backBar.classList.remove('show');
+  } else {
+    backBar.classList.add('show');
+  }
+  if(!isBack){
+    navHistory.push(pageName);
+  }
+  window.scrollTo({top:0, behavior:'smooth'});
+  if(pageName === 'men' && !document.getElementById('menListing').dataset.rendered){
+    renderListing('menListing', menProducts);
+    document.getElementById('menListing').dataset.rendered = "1";
+  }
+  if(pageName === 'women' && !document.getElementById('womenListing').dataset.rendered){
+    renderListing('womenListing', womenProducts);
+    document.getElementById('womenListing').dataset.rendered = "1";
+  }
+}
+
+function goHome(){
+  navHistory = ['home'];
+  showPage('home', true);
+}
+
+function goBack(){
+  if(navHistory.length > 1){
+    navHistory.pop();
+    const prev = navHistory[navHistory.length - 1];
+    showPage(prev, true);
+  } else {
+    showPage('home', true);
+  }
+}
+
+/* ===================== ORDER FORM ===================== */
+function openOrderForm(product){
+  selectedProduct = product;
+  document.getElementById('orderImg').src = product.img;
+  document.getElementById('orderCategory').textContent = product.category;
+  document.getElementById('orderPrice').textContent = 'GHS ' + product.price;
+  clearErrors();
+  document.getElementById('orderForm').reset();
+  document.getElementById('custQty').value = 1;
+  showPage('order');
+}
+
+function clearErrors(){
+  document.querySelectorAll('.form-error').forEach(e => e.classList.remove('show'));
+}
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=> t.classList.remove('show'), 2600);
+}
+
+document.getElementById('orderForm').addEventListener('submit', function(e){
+  e.preventDefault();
+  clearErrors();
+
+  const name = document.getElementById('custName').value.trim();
+  const location = document.getElementById('custLocation').value.trim();
+  const phone = document.getElementById('custPhone').value.trim();
+  const size = document.getElementById('custSize').value.trim();
+  const qty = document.getElementById('custQty').value.trim();
+
+  let valid = true;
+  if(name.length < 2){ document.getElementById('err-custName').classList.add('show'); valid = false; }
+  if(location.length < 2){ document.getElementById('err-custLocation').classList.add('show'); valid = false; }
+  const phoneDigits = phone.replace(/[^0-9+]/g,'');
+  if(phoneDigits.length < 9){ document.getElementById('err-custPhone').classList.add('show'); valid = false; }
+  if(size.length < 1){ document.getElementById('err-custSize').classList.add('show'); valid = false; }
+  if(!qty || parseInt(qty) < 1){ document.getElementById('err-custQty').classList.add('show'); valid = false; }
+
+  if(!valid || !selectedProduct){
+    showToast('Please fix the highlighted fields.');
+    return;
+  }
+
+  const message =
+`Hello ELITE FOOTIES,
+
+I would like to place an order.
+
+🖼️ Product Image:
+${selectedProduct.img}
+
+📂 Collection:
+${selectedProduct.category}
+
+💰 Price:
+GHS ${selectedProduct.price}
+
+👟 Foot Size:
+${size}
+
+📦 Quantity:
+${qty}
+
+👤 Name:
+${name}
+
+📍 Location:
+${location}
+
+📞 Phone Number:
+${phone}
+
+Please confirm my order. Thank you.`;
+
+  const encodedMessage = encodeURIComponent(message);
+  const waUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodedMessage}`;
+  window.open(waUrl, '_blank');
+});
+
+/* ===================== SCROLL ANIMATIONS ===================== */
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if(entry.isIntersecting){
+      entry.target.classList.add('in-view');
+    }
+  });
+}, { threshold: 0.15 });
+
+document.querySelectorAll('.collection-card, .feature-card').forEach(el => observer.observe(el));
+</script>
+
+</body>
+</html>
