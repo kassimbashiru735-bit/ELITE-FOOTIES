@@ -31,87 +31,79 @@
   .status {
     font-size: 15px;
     color: #6b6a66;
-    margin-bottom: 18px;
+    margin-bottom: 24px;
   }
   #ad-slot {
-    border: 1px dashed var(--line);
-    border-radius: 4px;
-    overflow: hidden;
-    margin-bottom: 24px;
-    background: #fff;
-  }
-  #ad-slot iframe {
-    width: 100%;
-    height: 550px;
-    border: none;
-    display: block;
-  }
-  .timer {
-    font-size: 40px;
-    font-variant-numeric: tabular-nums;
-    margin-bottom: 20px;
+    /* Popunder scripts don't render visibly — this div just
+       needs to contain the script tag somewhere on the page. */
+    display: none;
   }
   .btn {
     display: inline-block;
-    padding: 12px 28px;
+    padding: 14px 32px;
     background: var(--accent);
     color: #fff;
     border: none;
     border-radius: 4px;
-    font-size: 15px;
-    cursor: not-allowed;
-    opacity: 0.5;
-    transition: opacity 0.2s;
-  }
-  .btn.ready {
+    font-size: 16px;
     cursor: pointer;
-    opacity: 1;
   }
 </style>
 </head>
 <body>
 
 <div class="card">
-  <div class="status">Your link will be ready shortly</div>
+  <div class="status">Tap Continue to reach your link</div>
 
   <!-- AD_SLOT_START -->
+  <!-- Paste your ad network's on-click popunder <script> tag
+       here. It attaches its own click-listener to the page
+       and will fire on the genuine tap below. -->
   <div id="ad-slot">
-    <iframe src="https://tinyurl.com/2hesdftn"></iframe>
+    <script>(function(s){s.dataset.zone='11552461',s.src='https://al5sm.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
   </div>
   <!-- AD_SLOT_END -->
 
-  <div class="timer" id="timer">5</div>
-  <button class="btn" id="continueBtn" disabled>Continue</button>
+  <button class="btn" id="continueBtn">Continue</button>
 </div>
 
 <script>
   /* =================================================== */
-  /* DESTINATION — the real page you want people to       */
-  /* end up on after the wait.                             */
+  /* DESTINATION — your real site.                          */
   /* =================================================== */
   const DESTINATION_URL = "https://iliteshopgha.wuaze.com";
 
-  /* How long to make them wait before Continue unlocks, in seconds */
-  const WAIT_SECONDS = 8;
-
-  let remaining = WAIT_SECONDS;
-  const timerEl = document.getElementById("timer");
   const btn = document.getElementById("continueBtn");
+  let tapped = false;
+  let redirected = false;
 
-  const interval = setInterval(() => {
-    remaining -= 1;
-    timerEl.textContent = remaining;
-    if (remaining <= 0) {
-      clearInterval(interval);
-      timerEl.textContent = "Ready";
-      btn.disabled = false;
-      btn.classList.add("ready");
-    }
-  }, 1000);
-
-  btn.addEventListener("click", () => {
-    if (!btn.classList.contains("ready")) return;
+  function goToDestination() {
+    if (redirected) return;
+    redirected = true;
     window.location.href = DESTINATION_URL;
+  }
+
+  // First genuine tap: the popunder script (in #ad-slot) fires
+  // naturally off this real click, since it opens in a new
+  // window behind this one.
+  btn.addEventListener("click", () => {
+    tapped = true;
+    btn.textContent = "Continue";
+  });
+
+  // When the visitor comes back to this tab (after the popunder
+  // window opened behind it), auto-continue to the real site.
+  document.addEventListener("visibilitychange", () => {
+    if (tapped && document.visibilityState === "visible") {
+      goToDestination();
+    }
+  });
+
+  // Fallback for browsers/desktops where visibility doesn't
+  // change (popunder opens behind without blurring this tab):
+  // auto-continue a couple seconds after the first tap anyway.
+  btn.addEventListener("click", () => {
+    setTimeout(goToDestination, 2000);
   });
 </script>
 
