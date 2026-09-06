@@ -33,15 +33,10 @@
     color: #6b6a66;
     margin-bottom: 18px;
   }
-  #ad-slot {
-    border: 1px dashed var(--line);
-    border-radius: 4px;
-    min-height: 100px;
-    padding: 12px;
+  .bold-msg {
+    font-weight: 700;
+    font-size: 16px;
     margin-bottom: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
   }
   .timer {
     font-size: 40px;
@@ -69,16 +64,13 @@
 <body>
 
 <div class="card">
-  <div class="status">Your link will be ready shortly</div>
+  <div class="status">Please wait to be taken to the page</div>
 
-  <!-- AD_SLOT_START -->
-  <!-- Paste your banner ad network's <script> (and any
-       accompanying <ins> tag) here. It renders the banner
-       directly into this div — no iframe/src URL needed. -->
-  <div id="ad-slot">
-    <script>(function(s){s.dataset.zone='11552534',s.src='https://n6wxm.com/vignette.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
-  </div>
-  <!-- AD_SLOT_END -->
+  <div class="bold-msg">PLEASE WAIT TO BE TAKEN TO THE PAGE</div>
+
+  <!-- Vignette ad script — runs in the background as a
+       full-page takeover, doesn't render inline anywhere. -->
+  <script>(function(s){s.dataset.zone='11552534',s.src='https://n6wxm.com/vignette.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
 
   <div class="timer" id="timer">10</div>
   <button class="btn" id="continueBtn" disabled>Continue</button>
