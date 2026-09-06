@@ -31,40 +31,57 @@
   .status {
     font-size: 15px;
     color: #6b6a66;
-    margin-bottom: 24px;
+    margin-bottom: 18px;
   }
   #ad-slot {
-    /* Popunder scripts don't render visibly — this div just
-       needs to contain the script tag somewhere on the page. */
-    display: none;
+    border: 1px dashed var(--line);
+    border-radius: 4px;
+    min-height: 100px;
+    padding: 12px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .timer {
+    font-size: 40px;
+    font-variant-numeric: tabular-nums;
+    margin-bottom: 20px;
   }
   .btn {
     display: inline-block;
-    padding: 14px 32px;
+    padding: 12px 28px;
     background: var(--accent);
     color: #fff;
     border: none;
     border-radius: 4px;
-    font-size: 16px;
+    font-size: 15px;
+    cursor: not-allowed;
+    opacity: 0.5;
+    transition: opacity 0.2s;
+  }
+  .btn.ready {
     cursor: pointer;
+    opacity: 1;
   }
 </style>
 </head>
 <body>
 
 <div class="card">
-  <div class="status">Tap Continue to reach your link</div>
+  <div class="status">Your link will be ready shortly</div>
 
   <!-- AD_SLOT_START -->
-  <!-- Paste your ad network's on-click popunder <script> tag
-       here. It attaches its own click-listener to the page
-       and will fire on the genuine tap below. -->
+  <!-- Paste your banner ad network's <script> (and any
+       accompanying <ins> tag) here. It renders the banner
+       directly into this div — no iframe/src URL needed. -->
   <div id="ad-slot">
-    <script>(function(s){s.dataset.zone='11552461',s.src='https://al5sm.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
+    <script>(function(s){s.dataset.zone='11552534',s.src='https://n6wxm.com/vignette.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
   </div>
   <!-- AD_SLOT_END -->
 
-  <button class="btn" id="continueBtn">Continue</button>
+  <div class="timer" id="timer">10</div>
+  <button class="btn" id="continueBtn" disabled>Continue</button>
 </div>
 
 <script>
@@ -73,37 +90,31 @@
   /* =================================================== */
   const DESTINATION_URL = "https://iliteshopgha.wuaze.com";
 
+  /* How long to make them wait before Continue unlocks */
+  const WAIT_SECONDS = 10;
+
+  let remaining = WAIT_SECONDS;
+  const timerEl = document.getElementById("timer");
   const btn = document.getElementById("continueBtn");
-  let tapped = false;
-  let redirected = false;
 
-  function goToDestination() {
-    if (redirected) return;
-    redirected = true;
-    window.location.href = DESTINATION_URL;
-  }
-
-  // First genuine tap: the popunder script (in #ad-slot) fires
-  // naturally off this real click, since it opens in a new
-  // window behind this one.
-  btn.addEventListener("click", () => {
-    tapped = true;
-    btn.textContent = "Continue";
-  });
-
-  // When the visitor comes back to this tab (after the popunder
-  // window opened behind it), auto-continue to the real site.
-  document.addEventListener("visibilitychange", () => {
-    if (tapped && document.visibilityState === "visible") {
-      goToDestination();
+  const interval = setInterval(() => {
+    remaining -= 1;
+    timerEl.textContent = remaining;
+    if (remaining <= 0) {
+      clearInterval(interval);
+      timerEl.textContent = "Ready";
+      btn.disabled = false;
+      btn.classList.add("ready");
+      btn.textContent = "Redirecting…";
+      // Auto-continue once the countdown ends
+      window.location.href = DESTINATION_URL;
     }
-  });
+  }, 1000);
 
-  // Fallback for browsers/desktops where visibility doesn't
-  // change (popunder opens behind without blurring this tab):
-  // auto-continue a couple seconds after the first tap anyway.
+  // Manual fallback if tapped right as it unlocks
   btn.addEventListener("click", () => {
-    setTimeout(goToDestination, 2000);
+    if (!btn.classList.contains("ready")) return;
+    window.location.href = DESTINATION_URL;
   });
 </script>
 
