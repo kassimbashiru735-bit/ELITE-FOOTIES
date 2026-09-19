@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>NSMQ FormulaGen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700;800&family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#060811;
+    --bg-deep:#02030a;
+    --glass:rgba(20,26,46,0.55);
+    --glass-strong:rgba(14,18,34,0.85);
+    --border-glass:rgba(140,180,255,0.16);
+    --ink:#E9EDFB;
+    --ink-soft:#8791B8;
+    --ink-dim:#535C7E;
+    --navy:#4FE3FF;
+    --navy-soft:#22B8D9;
+    --navy-glow:rgba(79,227,255,0.45);
+    --amber:#B98CFF;
+    --amber-soft:rgba(185,140,255,0.14);
+    --amber-glow:rgba(185,140,255,0.5);
+    --sage:#3CFFC2;
+    --sage-soft:rgba(60,255,194,0.14);
+    --sage-glow:rgba(60,255,194,0.45);
+    --danger:#FF5D7E;
+    --paper:var(--bg);
+    --paper-raised:var(--glass);
+    --line:var(--border-glass);
+    --radius:10px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(circle at 12% 0%, rgba(79,227,255,0.10), transparent 42%),
+      radial-gradient(circle at 88% 18%, rgba(185,140,255,0.10), transparent 45%),
+      radial-gradient(circle at 50% 100%, rgba(60,255,194,0.07), transparent 50%),
+      var(--bg-deep);
+    background-attachment:fixed;
+    color:var(--ink);
+    font-family:'Rajdhani', sans-serif;
+    font-size:16px;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+    padding-bottom:84px;
+    position:relative;
+  }
+  body::before{
+    content:"";
+    position:fixed; inset:0; pointer-events:none; z-index:0;
+    background-image:
+      linear-gradient(rgba(140,180,255,0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(140,180,255,0.035) 1px, transparent 1px);
+    background-size:34px 34px;
+    mask-image:radial-gradient(circle at 50% 20%, black, transparent 75%);
+  }
+  h1,h2,h3,.mono,.display{font-family:'Orbitron',sans-serif; letter-spacing:0.3px;}
+  .formula, .value-tag, input.sym-input, .const-value, .step-index{
+    font-family:'JetBrains Mono', monospace;
+  }
+
+  /* ---------- header ---------- */
+  header{
+    position:sticky; top:0; z-index:30;
+    background:linear-gradient(180deg, rgba(10,13,26,0.92), rgba(10,13,26,0.78));
+    backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+    color:var(--ink);
+    padding:14px 18px;
+    display:flex; align-items:center; justify-content:space-between;
+    border-bottom:1px solid var(--border-glass);
+    box-shadow:0 1px 0 rgba(79,227,255,0.35), 0 12px 30px -18px rgba(79,227,255,0.5);
+  }
+  header .brand{display:flex; align-items:center; gap:10px;}
+  header .brand .mark{
+    font-family:'JetBrains Mono',monospace; font-weight:700; font-size:13px;
+    background:linear-gradient(135deg, var(--navy), var(--amber));
+    color:#04060D; padding:4px 8px; border-radius:4px;
+    box-shadow:0 0 16px var(--navy-glow);
+  }
+  header h1{
+    font-size:15.5px; margin:0; font-weight:700; letter-spacing:1px; white-space:nowrap;
+    background:linear-gradient(90deg, #EAF6FF, #B9E9FF);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  header .actions{display:flex; gap:8px;}
+  .icon-btn{
+    background:var(--glass); border:1px solid var(--border-glass); color:var(--navy);
+    width:38px; height:38px; border-radius:50%; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; font-size:15px;
+    transition:box-shadow .2s, border-color .2s;
+  }
+  .icon-btn:active{box-shadow:0 0 14px var(--navy-glow); border-color:var(--navy);}
+
+  main{max-width:640px; margin:0 auto; padding:22px 14px 40px; position:relative; z-index:1;}
+
+  /* ---------- step card ---------- */
+  .step{
+    background:var(--glass);
+    backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+    border:1px solid var(--border-glass);
+    border-radius:var(--radius);
+    margin-bottom:24px;
+    position:relative;
+    padding:24px 20px;
+    display:none;
+    overflow:hidden;
+  }
+  .step.active{display:block; animation:rise .4s cubic-bezier(.2,.8,.3,1);}
+  @keyframes rise{from{opacity:0; transform:translateY(10px) scale(.99);} to{opacity:1; transform:translateY(0) scale(1);}}
+  .step::before{
+    content:""; position:absolute; top:0; left:0; right:0; height:2px;
+  }
+  .step::after{
+    content:""; position:absolute; inset:0; border-radius:var(--radius); pointer-events:none;
+    box-shadow: inset 0 0 60px -40px rgba(140,180,255,0.6);
+  }
+  .step[data-accent="navy"]::before{background:linear-gradient(90deg, transparent, var(--navy), transparent); box-shadow:0 0 12px var(--navy-glow);}
+  .step[data-accent="amber"]::before{background:linear-gradient(90deg, transparent, var(--amber), transparent); box-shadow:0 0 12px var(--amber-glow);}
+  .step[data-accent="sage"]::before{background:linear-gradient(90deg, transparent, var(--sage), transparent); box-shadow:0 0 12px var(--sage-glow);}
+
+  /* corner brackets */
+  .step-head{display:flex; align-items:center; gap:12px; margin-bottom:14px; position:relative;}
+  .step-index{
+    font-size:12px; font-weight:700; color:var(--bg); letter-spacing:1px;
+    background:var(--navy); padding:4px 8px; border-radius:4px; box-shadow:0 0 12px var(--navy-glow);
+  }
+  .step[data-accent="amber"] .step-index{background:var(--amber); box-shadow:0 0 12px var(--amber-glow);}
+  .step[data-accent="sage"] .step-index{background:var(--sage); box-shadow:0 0 12px var(--sage-glow);}
+  .step-title{font-size:18px; font-weight:700; margin:0; letter-spacing:0.5px; color:#F2F5FF;}
+  .step-sub{font-size:13.5px; color:var(--ink-soft); margin:-6px 0 18px; font-family:'Rajdhani',sans-serif; font-weight:500;}
+
+  /* ---------- capture section ---------- */
+  .capture-row{display:flex; gap:10px; margin-bottom:14px;}
+  .capture-btn{
+    flex:1; padding:20px 10px; border:1.5px dashed var(--border-glass); background:rgba(255,255,255,0.02);
+    border-radius:8px;
+    display:flex; flex-direction:column; align-items:center; gap:8px;
+    cursor:pointer; font-family:'Orbitron',sans-serif; font-size:11.5px; font-weight:600; letter-spacing:0.4px;
+    color:var(--navy); transition:all .2s;
+  }
+  .capture-btn:active{background:var(--amber-soft); border-color:var(--amber); box-shadow:0 0 18px var(--amber-glow);}
+  .capture-btn .glyph{font-size:24px; filter:drop-shadow(0 0 6px var(--navy-glow));}
+  #previewWrap{display:none; margin-bottom:14px;}
+  #previewWrap img{width:100%; max-height:280px; object-fit:contain; border:1px solid var(--border-glass); border-radius:8px; background:rgba(0,0,0,0.3);}
+  #previewMeta{font-size:12px; color:var(--ink-soft); margin-top:6px; display:flex; justify-content:space-between; font-family:'JetBrains Mono',monospace;}
+  #previewMeta button{background:none; border:none; color:var(--danger); font-family:'Rajdhani',sans-serif; font-weight:700; font-size:12px; cursor:pointer; text-decoration:underline; padding:0;}
+
+  .or-divider{
+    display:flex; align-items:center; gap:12px; margin:18px 0; color:var(--ink-dim);
+    font-family:'Orbitron',sans-serif; font-size:10.5px; letter-spacing:1px; text-transform:uppercase;
+  }
+  .or-divider::before, .or-divider::after{content:""; flex:1; height:1px; background:var(--border-glass);}
+
+  #typeWrap textarea{
+    width:100%; padding:14px; border:1px solid var(--border-glass); border-radius:8px; background:rgba(0,0,0,0.35);
+    color:var(--ink); font-size:14.5px; font-family:'Rajdhani',sans-serif; font-weight:500; resize:vertical;
+    min-height:80px; margin-bottom:4px;
+  }
+  #typeWrap textarea:focus{outline:none; border-color:var(--navy); box-shadow:0 0 0 3px rgba(79,227,255,0.18);}
+  #typeWrap textarea::placeholder{color:var(--ink-dim);}
+  #captureSymbolPalette{margin-bottom:2px;}
+
+  .btn{
+    font-family:'Orbitron',sans-serif; font-weight:600; font-size:13px; letter-spacing:0.6px;
+    padding:14px 18px; border:none; cursor:pointer; border-radius:8px;
+    width:100%; position:relative; transition:all .2s;
+  }
+  .btn-primary{
+    background:linear-gradient(135deg, var(--navy), #2A8FE0);
+    color:#04060D; box-shadow:0 0 22px -4px var(--navy-glow), 0 6px 18px -8px rgba(0,0,0,0.6);
+  }
+  .btn-primary:disabled{background:rgba(255,255,255,0.06); color:var(--ink-dim); box-shadow:none; cursor:not-allowed;}
+  .btn-primary:active:not(:disabled){transform:translateY(1px); box-shadow:0 0 30px -2px var(--navy-glow);}
+  .btn-ghost{background:var(--glass); border:1px solid var(--border-glass); color:var(--ink);}
+  .btn-ghost:active{border-color:var(--navy); box-shadow:0 0 14px var(--navy-glow);}
+  .btn-small{width:auto; padding:10px 16px; font-size:11.5px;}
+
+  #status{font-size:13px; color:var(--ink-soft); margin-top:12px; display:none; align-items:center; gap:10px; font-family:'JetBrains Mono',monospace;}
+  .scan-line{width:34px; height:6px; border-radius:3px; background:rgba(255,255,255,0.08); overflow:hidden; position:relative; flex:none;}
+  .scan-line span{position:absolute; top:0; left:0; width:40%; height:100%; background:linear-gradient(90deg, transparent, var(--navy), transparent); animation:scan 1.1s ease-in-out infinite;}
+  @keyframes scan{0%{left:-40%;} 100%{left:100%;}}
+  #errorBox{display:none; background:rgba(255,93,126,0.1); border:1px solid var(--danger); color:#FF9FB2; padding:12px 14px; border-radius:6px; font-size:13px; margin-top:12px; font-family:'Rajdhani',sans-serif; font-weight:600;}
+
+  /* ---------- formula display ---------- */
+  .subject-tag{
+    display:inline-block; font-family:'Orbitron',sans-serif; font-size:10.5px; font-weight:700;
+    letter-spacing:0.8px; background:var(--sage-soft); color:var(--sage); padding:5px 10px; margin-bottom:14px;
+    border-radius:20px; border:1px solid rgba(60,255,194,0.35);
+  }
+  .question-echo{
+    font-size:14px; color:var(--ink-soft); font-style:italic; border-left:2px solid var(--navy);
+    padding-left:12px; margin-bottom:18px; font-family:'Rajdhani',sans-serif; font-weight:500;
+  }
+  .formula-display{
+    font-size:22px; font-weight:600; color:var(--navy); background:rgba(0,0,0,0.35);
+    border:1px solid var(--border-glass); border-radius:8px; padding:16px; margin-bottom:18px; overflow-x:auto; white-space:nowrap;
+    text-shadow:0 0 18px var(--navy-glow);
+  }
+  .def-list{list-style:none; margin:0 0 18px; padding:0;}
+  .def-list li{display:flex; gap:12px; padding:9px 0; border-bottom:1px solid var(--border-glass); font-size:14.5px; font-weight:500;}
+  .def-list li:last-child{border-bottom:none;}
+  .def-sym{font-weight:700; color:var(--navy); min-width:34px; font-size:15px; font-family:'JetBrains Mono',monospace;}
+  .def-name{flex:1;}
+  .def-name .unit{color:var(--ink-soft); font-size:12px;}
+
+  .subhead{font-family:'Orbitron',sans-serif; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:1.2px; color:var(--ink-soft); margin:20px 0 10px;}
+
+  .const-list{list-style:none; margin:0 0 16px; padding:0;}
+  .const-list li{display:flex; align-items:center; gap:10px; padding:10px 12px; background:rgba(255,255,255,0.02); border:1px solid var(--border-glass); border-radius:6px; margin-bottom:6px; font-size:13px;}
+  .const-sym{font-weight:700; color:var(--amber); min-width:30px; font-family:'JetBrains Mono',monospace;}
+  .const-name{flex:1; font-family:'Rajdhani',sans-serif; font-weight:500;}
+  .const-value{color:var(--ink); font-size:12.5px; white-space:nowrap;}
+
+  .given-row{display:flex; align-items:center; gap:10px; margin-bottom:9px;}
+  .given-row label{font-weight:700; color:var(--navy); min-width:28px; font-family:'JetBrains Mono',monospace; text-shadow:0 0 10px var(--navy-glow);}
+  input.sym-input{
+    flex:1; padding:11px 12px; border:1px solid var(--border-glass); background:rgba(0,0,0,0.35); font-size:14px; color:var(--ink);
+    border-radius:6px; font-family:'JetBrains Mono',monospace;
+  }
+  input.sym-input:focus{outline:none; border-color:var(--navy); box-shadow:0 0 0 3px rgba(79,227,255,0.18);}
+  .given-row .unit-badge{font-size:11px; color:var(--ink-soft); min-width:36px; font-family:'JetBrains Mono',monospace;}
+
+  .symbol-palette{
+    display:flex; flex-wrap:nowrap; overflow-x:auto; gap:6px; padding:10px 0 12px;
+    border-top:1px dashed var(--border-glass); border-bottom:1px dashed var(--border-glass); margin:10px 0 16px;
+  }
+  .symbol-palette button{
+    flex:none; width:36px; height:36px; border:1px solid var(--border-glass); background:rgba(255,255,255,0.02);
+    border-radius:6px; font-family:'JetBrains Mono',monospace; font-size:15px; cursor:pointer; color:var(--navy);
+    transition:all .15s;
+  }
+  .symbol-palette button:active{background:var(--amber-soft); border-color:var(--amber); box-shadow:0 0 12px var(--amber-glow); color:var(--amber);}
+
+  /* ---------- simplify ---------- */
+  .arith-block{
+    background:rgba(0,0,0,0.35); border:1px solid var(--border-glass); border-radius:8px; padding:14px 16px; margin-bottom:16px;
+    font-family:'JetBrains Mono',monospace; font-size:13px; line-height:1.8; white-space:pre-wrap; color:var(--ink-soft);
+  }
+  .simplified-formula{
+    font-size:24px; font-weight:700; color:var(--amber); background:var(--amber-soft);
+    border:1px solid rgba(185,140,255,0.4); border-radius:10px; padding:20px; text-align:center; margin-bottom:8px; overflow-x:auto;
+    text-shadow:0 0 20px var(--amber-glow); box-shadow:0 0 30px -12px var(--amber-glow);
+  }
+  .simplified-label{text-align:center; font-size:11px; color:var(--ink-soft); font-family:'Orbitron',sans-serif; letter-spacing:1px; margin-bottom:18px;}
+
+  /* ---------- solve ---------- */
+  .solve-steps{list-style:none; margin:0 0 18px; padding:0; counter-reset:step;}
+  .solve-steps li{
+    counter-increment:step; position:relative; padding:12px 0 12px 34px; border-bottom:1px solid var(--border-glass);
+    font-family:'JetBrains Mono',monospace; font-size:13.5px; color:var(--ink);
+  }
+  .solve-steps li:last-child{border-bottom:none;}
+  .solve-steps li::before{
+    content:counter(step); position:absolute; left:0; top:11px; width:22px; height:22px;
+    background:var(--sage); color:#04140F; font-family:'Orbitron',sans-serif; font-size:11px; font-weight:700;
+    display:flex; align-items:center; justify-content:center; border-radius:50%; box-shadow:0 0 12px var(--sage-glow);
+  }
+  .final-answer{
+    background:linear-gradient(135deg, rgba(60,255,194,0.16), rgba(60,255,194,0.05));
+    border:1px solid rgba(60,255,194,0.4);
+    color:#EAFFF7; padding:22px; text-align:center; margin-top:8px; border-radius:10px;
+    box-shadow:0 0 40px -14px var(--sage-glow);
+  }
+  .final-answer .label{font-family:'Orbitron',sans-serif; font-size:10.5px; letter-spacing:1.5px; opacity:0.8; margin-bottom:8px; color:var(--sage);}
+  .final-answer .value{font-family:'JetBrains Mono',monospace; font-size:25px; font-weight:700; text-shadow:0 0 22px var(--sage-glow);}
+
+  .recalc-row{display:flex; gap:10px; margin-top:8px;}
+
+  /* ---------- constants sheet ---------- */
+  .sheet-overlay{
+    position:fixed; inset:0; background:rgba(2,3,10,0.75); backdrop-filter:blur(4px); z-index:50; display:none;
+  }
+  .sheet-overlay.open{display:block;}
+  .sheet{
+    position:fixed; left:0; right:0; bottom:0; max-height:80vh; background:var(--glass-strong);
+    backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px);
+    z-index:51; transform:translateY(100%); transition:transform .3s cubic-bezier(.2,.8,.3,1);
+    border-top:1px solid var(--navy); box-shadow:0 -8px 40px -10px var(--navy-glow);
+    border-radius:16px 16px 0 0;
+    display:flex; flex-direction:column;
+  }
+  .sheet.open{transform:translateY(0);}
+  .sheet-head{display:flex; justify-content:space-between; align-items:center; padding:16px 18px; border-bottom:1px solid var(--border-glass);}
+  .sheet-head h2{font-size:15px; margin:0; letter-spacing:1px; color:#F2F5FF;}
+  .sheet-body{overflow-y:auto; padding:14px 18px 26px;}
+  .sheet input#constSearch{
+    width:100%; padding:12px; border:1px solid var(--border-glass); border-radius:8px; background:rgba(0,0,0,0.35);
+    color:var(--ink); font-size:14px; margin-bottom:14px; font-family:'Rajdhani',sans-serif; font-weight:500;
+  }
+  .sheet input#constSearch:focus{outline:none; border-color:var(--navy); box-shadow:0 0 0 3px rgba(79,227,255,0.18);}
+  .const-group-title{font-family:'Orbitron',sans-serif; font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--navy); margin:16px 0 8px;}
+
+  /* ---------- settings sheet ---------- */
+  .field{margin-bottom:16px;}
+  .field label{display:block; font-family:'Orbitron',sans-serif; font-size:11px; font-weight:600; letter-spacing:0.5px; margin-bottom:6px; color:var(--ink-soft);}
+  .field input{width:100%; padding:12px; border:1px solid var(--border-glass); border-radius:8px; background:rgba(0,0,0,0.35); color:var(--ink); font-size:14px; font-family:'JetBrains Mono',monospace;}
+  .field input:focus{outline:none; border-color:var(--navy); box-shadow:0 0 0 3px rgba(79,227,255,0.18);}
+  .field .hint{font-size:11px; color:var(--ink-dim); margin-top:6px; font-family:'Rajdhani',sans-serif; font-weight:500;}
+
+  footer{
+    position:fixed; bottom:14px; left:14px; right:14px; z-index:20;
+    background:var(--glass-strong); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+    border:1px solid var(--border-glass); border-radius:16px;
+    display:flex; box-shadow:0 10px 40px -14px rgba(0,0,0,0.7);
+  }
+  footer button{
+    flex:1; background:none; border:none; padding:12px 4px; font-family:'Orbitron',sans-serif;
+    font-size:9.5px; letter-spacing:0.4px; color:var(--ink-dim); cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:5px;
+    transition:color .2s;
+  }
+  footer button .glyph{font-size:17px; filter:grayscale(1) opacity(0.6); transition:filter .2s;}
+  footer button.active{color:var(--navy); text-shadow:0 0 10px var(--navy-glow);}
+  footer button.active .glyph{filter:none; drop-shadow:0 0 8px var(--navy-glow);}
+
+  ::selection{background:var(--amber-soft); color:#fff;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <span class="mark">ƒ(x)</span>
+    <h1>NSMQ FormulaGen</h1>
+  </div>
+  <div class="actions">
+    <button class="icon-btn" id="openConstants" title="Constants library">C</button>
+    <button class="icon-btn" id="openSettings" title="Settings">⚙</button>
+  </div>
+</header>
+
+<main>
+
+  <!-- ===================== STEP 1 : CAPTURE ===================== -->
+  <section class="step active" data-accent="navy" id="stepCapture">
+    <div class="step-head">
+      <span class="step-index">01</span>
+      <h2 class="step-title">Capture the question</h2>
+    </div>
+    <p class="step-sub">Photograph or upload the question. NSMQ FormulaGen reads it and finds the formula it needs.</p>
+
+    <div class="capture-row">
+      <label class="capture-btn">
+        <span class="glyph">&#128247;</span>
+        Take photo
+        <input type="file" accept="image/*" capture="environment" id="cameraInput" hidden>
+      </label>
+      <label class="capture-btn">
+        <span class="glyph">&#128193;</span>
+        Upload image
+        <input type="file" accept="image/*" id="galleryInput" hidden>
+      </label>
+    </div>
+
+    <div id="previewWrap">
+      <img id="previewImg" alt="Question preview">
+      <div id="previewMeta">
+        <span id="previewName">image.jpg</span>
+        <button id="clearImage">Remove</button>
+      </div>
+    </div>
+
+    <div class="or-divider" id="orDivider"><span>or type it instead</span></div>
+
+    <div id="typeWrap">
+      <textarea id="typedQuestion" rows="3" placeholder="e.g. Calculate the energy of a photon with a wavelength of 500 nm."></textarea>
+      <div class="symbol-palette" id="captureSymbolPalette"></div>
+    </div>
+
+    <button class="btn btn-primary" id="analyzeBtn" disabled>Analyze question</button>
+    <div id="status"><div class="scan-line"><span></span></div><span id="statusText">Reading the question…</span></div>
+    <div id="errorBox"></div>
+  </section>
+
+  <!-- ===================== STEP 2 : FORMULA ===================== -->
+  <section class="step" data-accent="amber" id="stepFormula">
+    <div class="step-head">
+      <span class="step-index">02</span>
+      <h2 class="step-title">The formula</h2>
+    </div>
+    <span class="subject-tag" id="subjectTag">SUBJECT</span>
+    <p class="question-echo" id="questionEcho"></p>
+
+    <div class="formula-display" id="formulaDisplay"></div>
+
+    <div class="subhead">Variables &amp; constants</div>
+    <ul class="def-list" id="defList"></ul>
+
+    <div class="subhead">Standard constant values</div>
+    <ul class="const-list" id="constUsedList"></ul>
+
+    <div class="subhead">Given in the question — edit if needed</div>
+    <div id="givenList"></div>
+
+    <div class="symbol-palette" id="symbolPalette"></div>
+
+    <button class="btn btn-primary" id="continueToSimplify">Continue to simplification</button>
+  </section>
+
+  <!-- ===================== STEP 3 : SIMPLIFY ===================== -->
+  <section class="step" data-accent="amber" id="stepSimplify">
+    <div class="step-head">
+      <span class="step-index">03</span>
+      <h2 class="step-title">Simplify the formula</h2>
+    </div>
+    <p class="step-sub">Constants collapse into a single working coefficient.</p>
+
+    <div class="subhead">Working</div>
+    <div class="arith-block" id="arithBlock"></div>
+
+    <div class="simplified-formula" id="simplifiedFormulaBox"></div>
+    <div class="simplified-label">SIMPLIFIED FORM</div>
+
+    <button class="btn btn-primary" id="continueToSolve">Continue to solve</button>
+  </section>
+
+  <!-- ===================== STEP 4 : SOLVE ===================== -->
+  <section class="step" data-accent="sage" id="stepSolve">
+    <div class="step-head">
+      <span class="step-index">04</span>
+      <h2 class="step-title">Solve</h2>
+    </div>
+
+    <ol class="solve-steps" id="solveSteps"></ol>
+
+    <div class="final-answer">
+      <div class="label">FINAL ANSWER</div>
+      <div class="value" id="finalAnswer"></div>
+    </div>
+
+    <div class="recalc-row">
+      <button class="btn btn-ghost btn-small" id="editValuesBtn">Edit given values</button>
+      <button class="btn btn-ghost btn-small" id="startOverBtn">Start a new question</button>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <button class="active" data-step="stepCapture"><span class="glyph">&#128247;</span>Capture</button>
+  <button data-step="stepFormula"><span class="glyph">ƒ</span>Formula</button>
+  <button data-step="stepSimplify"><span class="glyph">≈</span>Simplify</button>
+  <button data-step="stepSolve"><span class="glyph">=</span>Solve</button>
+</footer>
+
+<!-- ===================== CONSTANTS SHEET ===================== -->
+<div class="sheet-overlay" id="constantsOverlay">
+  <div class="sheet" id="constantsSheet">
+    <div class="sheet-head">
+      <h2>Constants library</h2>
+      <button class="icon-btn" id="closeConstants">&times;</button>
+    </div>
+    <div class="sheet-body">
+      <input type="text" id="constSearch" placeholder="Search constants (e.g. Planck, π, Avogadro)">
+      <div id="constLibraryList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== ADMIN LOGIN SHEET ===================== -->
+<div class="sheet-overlay" id="loginOverlay">
+  <div class="sheet" id="loginSheet">
+    <div class="sheet-head">
+      <h2>Admin sign-in</h2>
+      <button class="icon-btn" id="closeLogin">&times;</button>
+    </div>
+    <div class="sheet-body">
+      <p style="font-size:12.5px; color:var(--ink-soft); margin:0 0 16px; font-family:'Rajdhani',sans-serif; font-weight:500;">Settings are restricted. Sign in to continue.</p>
+      <div class="field">
+        <label for="loginUsername">Username</label>
+        <input type="text" id="loginUsername" placeholder="Username" autocomplete="off" autocapitalize="off" spellcheck="false">
+      </div>
+      <div class="field">
+        <label for="loginPassword">Password</label>
+        <input type="password" id="loginPassword" placeholder="Password" autocomplete="off">
+      </div>
+      <div id="loginError" style="display:none; background:rgba(255,93,126,0.1); border:1px solid var(--danger); color:#FF9FB2; padding:10px 12px; border-radius:6px; font-size:12.5px; margin-bottom:14px; font-family:'Rajdhani',sans-serif; font-weight:600;">Incorrect username or password.</div>
+      <button class="btn btn-primary" id="loginSubmit">Unlock</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SETTINGS SHEET ===================== -->
+<div class="sheet-overlay" id="settingsOverlay">
+  <div class="sheet" id="settingsSheet">
+    <div class="sheet-head">
+      <h2>Settings</h2>
+      <button class="icon-btn" id="closeSettings">&times;</button>
+    </div>
+    <div class="sheet-body">
+      <div class="field">
+        <label>Gemini API keys (up to 5)</label>
+        <input type="password" id="apiKeyInput1" placeholder="API key 1 — AIza…" style="margin-bottom:8px;">
+        <input type="password" id="apiKeyInput2" placeholder="API key 2 (optional)" style="margin-bottom:8px;">
+        <input type="password" id="apiKeyInput3" placeholder="API key 3 (optional)" style="margin-bottom:8px;">
+        <input type="password" id="apiKeyInput4" placeholder="API key 4 (optional)" style="margin-bottom:8px;">
+        <input type="password" id="apiKeyInput5" placeholder="API key 5 (optional)">
+        <div class="hint">Stored only on this device (localStorage). Add several keys and FormulaGen automatically switches to the next working one if a key hits its quota or fails — get keys at aistudio.google.com/apikey.</div>
+      </div>
+      <div class="field">
+        <label for="modelInput">Model</label>
+        <input type="text" id="modelInput" placeholder="gemini-3.6-flash">
+        <div class="hint">Must be a current vision-capable Gemini model. Change here if Google renames or retires this one.</div>
+      </div>
+      <button class="btn btn-primary" id="saveSettings">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ============================================================
+     CONSTANTS LIBRARY
+     ============================================================ */
+  const CONSTANTS_LIBRARY = {
+    "Physics": [
+      {symbol:"h", name:"Planck's constant", value:"6.62607015 × 10⁻³⁴", unit:"J·s"},
+      {symbol:"ħ", name:"Reduced Planck's constant", value:"1.054571817 × 10⁻³⁴", unit:"J·s"},
+      {symbol:"c", name:"Speed of light in vacuum", value:"2.99792458 × 10⁸", unit:"m/s"},
+      {symbol:"G", name:"Gravitational constant", value:"6.674 × 10⁻¹¹", unit:"N·m²/kg²"},
+      {symbol:"g", name:"Standard gravity (Earth)", value:"9.80665", unit:"m/s²"},
+      {symbol:"e", name:"Elementary charge", value:"1.602176634 × 10⁻¹⁹", unit:"C"},
+      {symbol:"mₑ", name:"Electron rest mass", value:"9.1093837015 × 10⁻³¹", unit:"kg"},
+      {symbol:"mₚ", name:"Proton rest mass", value:"1.67262192369 × 10⁻²⁷", unit:"kg"},
+      {symbol:"k", name:"Boltzmann constant", value:"1.380649 × 10⁻²³", unit:"J/K"},
+      {symbol:"kₑ", name:"Coulomb's constant", value:"8.9875517923 × 10⁹", unit:"N·m²/C²"},
+      {symbol:"ε₀", name:"Vacuum permittivity", value:"8.8541878128 × 10⁻¹²", unit:"F/m"},
+      {symbol:"μ₀", name:"Vacuum permeability", value:"1.25663706212 × 10⁻⁶", unit:"N/A²"},
+      {symbol:"σ", name:"Stefan–Boltzmann constant", value:"5.670374419 × 10⁻⁸", unit:"W/m²K⁴"},
+      {symbol:"R∞", name:"Rydberg constant", value:"1.0973731568 × 10⁷", unit:"m⁻¹"}
+    ],
+    "Chemistry": [
+      {symbol:"Nₐ", name:"Avogadro's number", value:"6.02214076 × 10²³", unit:"mol⁻¹"},
+      {symbol:"R", name:"Ideal gas constant", value:"8.314462618", unit:"J/mol·K"},
+      {symbol:"F", name:"Faraday constant", value:"96485.33212", unit:"C/mol"},
+      {symbol:"Vₘ", name:"Molar volume of ideal gas (STP)", value:"22.414", unit:"L/mol"},
+      {symbol:"atm", name:"Standard atmosphere", value:"101325", unit:"Pa"}
+    ],
+    "Math": [
+      {symbol:"π", name:"Pi", value:"3.14159265359", unit:"—"},
+      {symbol:"e", name:"Euler's number", value:"2.71828182846", unit:"—"},
+      {symbol:"φ", name:"Golden ratio", value:"1.61803398875", unit:"—"},
+      {symbol:"γ", name:"Euler–Mascheroni constant", value:"0.5772156649", unit:"—"}
+    ]
+  };
+
+  const SYMBOLS = ["Δ","λ","π","θ","√","∑","∫","±","≈","≤","≥","∞","×10ⁿ","α","β","γ","μ","Ω","°","Å","∂","∇","→","·","²","³","₀","₁","ħ","φ"];
+
+  /* ============================================================
+     STATE
+     ============================================================ */
+  let state = {
+    imageBase64: null,
+    imageMime: null,
+    result: null,       // full parsed Gemini JSON
+    editedGivens: [],    // working copy of givenValues, editable
+    givensDirty: false
+  };
+
+  const $ = (id) => document.getElementById(id);
+
+  /* ============================================================
+     SETTINGS (API keys / model) — stored in localStorage
+     Up to 5 Gemini API keys can be configured. Calls try them in
+     order (starting from whichever one last worked) and silently
+     fall through to the next configured key if one is unavailable.
+     ============================================================ */
+  function loadSettings(){
+    let keys;
+    try {
+      keys = JSON.parse(localStorage.getItem("fg_apiKeys") || "[]");
+    } catch(e){ keys = []; }
+    if(!Array.isArray(keys)) keys = [];
+    while(keys.length < 5) keys.push("");
+    return {
+      apiKeys: keys,
+      model: localStorage.getItem("fg_model") || "gemini-3.6-flash",
+      lastWorkingKeyIndex: parseInt(localStorage.getItem("fg_lastWorkingKeyIndex") || "0", 10) || 0
+    };
+  }
+  function saveSettingsToStorage(apiKeys, model){
+    localStorage.setItem("fg_apiKeys", JSON.stringify(apiKeys));
+    localStorage.setItem("fg_model", model || "gemini-3.6-flash");
+  }
+  function rememberWorkingKeyIndex(idx){
+    localStorage.setItem("fg_lastWorkingKeyIndex", String(idx));
+  }
+
+  (function initSettingsUI(){
+    const s = loadSettings();
+    for(let i=0;i<5;i++){
+      $("apiKeyInput"+(i+1)).value = s.apiKeys[i] || "";
+    }
+    $("modelInput").value = s.model;
+  })();
+
+  /* ============================================================
+     ADMIN LOGIN GATE — Settings always requires the correct
+     username/password, every single time it's opened. Nothing
+     about the unlock is remembered between opens (or between
+     people sharing a device) — closing Settings re-locks it.
+     ============================================================ */
+  const ADMIN_USERNAME = "adminbash";
+  const ADMIN_PASSWORD = "1122334455667aA$";
+
+  function attemptLogin(){
+    const u = $("loginUsername").value;
+    const p = $("loginPassword").value;
+    if(u === ADMIN_USERNAME && p === ADMIN_PASSWORD){
+      $("loginError").style.display = "none";
+      $("loginUsername").value = ""; $("loginPassword").value = "";
+      toggleSheet("loginOverlay","loginSheet", false);
+      setTimeout(() => toggleSheet("settingsOverlay","settingsSheet", true), 260);
+    } else {
+      $("loginError").style.display = "block";
+      $("loginPassword").value = "";
+      $("loginPassword").focus();
+    }
+  }
+  $("loginSubmit").addEventListener("click", attemptLogin);
+  $("loginPassword").addEventListener("keydown", (e) => { if(e.key === "Enter") attemptLogin(); });
+  $("loginUsername").addEventListener("keydown", (e) => { if(e.key === "Enter") $("loginPassword").focus(); });
+  $("closeLogin").addEventListener("click", () => toggleSheet("loginOverlay","loginSheet", false));
+  $("loginOverlay").addEventListener("click", (e)=>{ if(e.target.id==="loginOverlay") toggleSheet("loginOverlay","loginSheet",false); });
+
+  $("openSettings").addEventListener("click", () => {
+    $("loginUsername").value = ""; $("loginPassword").value = "";
+    $("loginError").style.display = "none";
+    toggleSheet("loginOverlay","loginSheet", true);
+  });
+  $("closeSettings").addEventListener("click", () => toggleSheet("settingsOverlay","settingsSheet", false));
+  $("saveSettings").addEventListener("click", () => {
+    const keys = [1,2,3,4,5].map(i => $("apiKeyInput"+i).value.trim());
+    saveSettingsToStorage(keys, $("modelInput").value.trim());
+    toggleSheet("settingsOverlay","settingsSheet", false);
+  });
+
+  /* ============================================================
+     SHEETS (constants + settings) — shared open/close
+     ============================================================ */
+  function toggleSheet(overlayId, sheetId, open){
+    const overlay = $(overlayId), sheet = $(sheetId);
+    if(open){
+      overlay.classList.add("open");
+      requestAnimationFrame(()=>sheet.classList.add("open"));
+    } else {
+      sheet.classList.remove("open");
+      setTimeout(()=>overlay.classList.remove("open"), 250);
+    }
+  }
+  $("constantsOverlay").addEventListener("click", (e)=>{ if(e.target.id==="constantsOverlay") toggleSheet("constantsOverlay","constantsSheet",false); });
+  $("settingsOverlay").addEventListener("click", (e)=>{ if(e.target.id==="settingsOverlay") toggleSheet("settingsOverlay","settingsSheet",false); });
+
+  /* ============================================================
+     CONSTANTS LIBRARY UI
+     ============================================================ */
+  function renderConstantsList(filter){
+    const wrap = $("constLibraryList");
+    wrap.innerHTML = "";
+    const q = (filter||"").trim().toLowerCase();
+    Object.keys(CONSTANTS_LIBRARY).forEach(group => {
+      const items = CONSTANTS_LIBRARY[group].filter(c =>
+        !q || c.name.toLowerCase().includes(q) || c.symbol.toLowerCase().includes(q)
+      );
+      if(!items.length) return;
+      const title = document.createElement("div");
+      title.className = "const-group-title";
+      title.textContent = group;
+      wrap.appendChild(title);
+      const list = document.createElement("ul");
+      list.className = "const-list";
+      items.forEach(c => {
+        const li = document.createElement("li");
+        li.innerHTML = `<span class="const-sym">${c.symbol}</span><span class="const-name">${c.name}</span><span class="const-value">${c.value} ${c.unit!=="—"?c.unit:""}</span>`;
+        list.appendChild(li);
+      });
+      wrap.appendChild(list);
+    });
+  }
+  $("openConstants").addEventListener("click", () => {
+    renderConstantsList("");
+    toggleSheet("constantsOverlay","constantsSheet", true);
+  });
+  $("closeConstants").addEventListener("click", () => toggleSheet("constantsOverlay","constantsSheet", false));
+  $("constSearch").addEventListener("input", (e) => renderConstantsList(e.target.value));
+
+  /* ============================================================
+     FOOTER NAV
+     ============================================================ */
+  function goToStep(stepId){
+    document.querySelectorAll(".step").forEach(s => s.classList.remove("active"));
+    $(stepId).classList.add("active");
+    document.querySelectorAll("footer button").forEach(b => {
+      b.classList.toggle("active", b.dataset.step === stepId);
+    });
+    window.scrollTo({top:0, behavior:"smooth"});
+  }
+  document.querySelectorAll("footer button").forEach(btn => {
+    btn.addEventListener("click", () => {
+      // only allow navigating to steps that already have data, or step 1 always
+      if(btn.dataset.step === "stepCapture" || state.result){
+        goToStep(btn.dataset.step);
+      }
+    });
+  });
+
+  /* ============================================================
+     IMAGE CAPTURE / UPLOAD / TYPED QUESTION
+     ============================================================ */
+  function updateAnalyzeAvailability(){
+    const hasImage = !!state.imageBase64;
+    const hasText = $("typedQuestion").value.trim().length > 0;
+    $("analyzeBtn").disabled = !(hasImage || hasText);
+  }
+
+  function handleFile(file){
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const dataUrl = e.target.result;
+      state.imageBase64 = dataUrl.split(",")[1];
+      state.imageMime = file.type || "image/jpeg";
+      $("previewImg").src = dataUrl;
+      $("previewName").textContent = file.name || "captured-photo.jpg";
+      $("previewWrap").style.display = "block";
+      // typing and photo are mutually exclusive inputs for a single question
+      $("typedQuestion").value = "";
+      $("typeWrap").style.display = "none";
+      $("orDivider").style.display = "none";
+      updateAnalyzeAvailability();
+      setError(null);
+    };
+    reader.readAsDataURL(file);
+  }
+  $("cameraInput").addEventListener("change", (e) => handleFile(e.target.files[0]));
+  $("galleryInput").addEventListener("change", (e) => handleFile(e.target.files[0]));
+  $("clearImage").addEventListener("click", () => {
+    state.imageBase64 = null; state.imageMime = null;
+    $("previewWrap").style.display = "none";
+    $("cameraInput").value = ""; $("galleryInput").value = "";
+    $("typeWrap").style.display = "block";
+    $("orDivider").style.display = "flex";
+    updateAnalyzeAvailability();
+  });
+
+  $("typedQuestion").addEventListener("input", (e) => {
+    if(e.target.value.trim().length > 0){
+      // typing and photo are mutually exclusive inputs for a single question
+      state.imageBase64 = null; state.imageMime = null;
+      $("previewWrap").style.display = "none";
+      $("cameraInput").value = ""; $("galleryInput").value = "";
+    }
+    updateAnalyzeAvailability();
+  });
+
+  /* ============================================================
+     GEMINI API CALL — tries each configured key in turn, starting
+     from whichever key last succeeded, and silently moves on to
+     the next configured key if one is unavailable (quota, invalid,
+     rate-limited, or any other failure).
+     ============================================================ */
+  async function callGeminiWithKey(apiKey, model, parts, json){
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
+    const body = {
+      contents: [{ role: "user", parts }],
+      generationConfig: json ? { responseMimeType: "application/json" } : {}
+    };
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
+      body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    if(!res.ok){
+      const msg = (data && data.error && data.error.message) ? data.error.message : `Request failed (${res.status})`;
+      const err = new Error(msg);
+      err.status = res.status;
+      throw err;
+    }
+    const candidates = data && data.candidates;
+    const firstCandidate = candidates && candidates[0];
+    const contentParts = firstCandidate && firstCandidate.content && firstCandidate.content.parts;
+    const text = (contentParts ? contentParts.map(function(p){ return p.text || ""; }).join("") : "") || "";
+    if(!text) throw new Error("The model returned an empty response. Try a clearer photo of the question.");
+    if(json){
+      try {
+        return JSON.parse(text);
+      } catch(err){
+        const match = text.match(/\{[\s\S]*\}/);
+        if(match) return JSON.parse(match[0]);
+        throw new Error("Could not parse the model's response as JSON.");
+      }
+    }
+    return text;
+  }
+
+  async function callGemini(parts, {json=true} = {}){
+    const s = loadSettings();
+    const model = s.model || "gemini-3.6-flash";
+
+    const configured = []; // {key, index}
+    for(let i=0;i<s.apiKeys.length;i++){
+      if(s.apiKeys[i] && s.apiKeys[i].trim()) configured.push({ key: s.apiKeys[i].trim(), index: i });
+    }
+    if(configured.length === 0){
+      throw new Error("Add at least one Gemini API key in Settings (gear icon, top right) before analyzing a question.");
+    }
+
+    // try the last-known-working key first, then the rest in order
+    const startPos = configured.findIndex(c => c.index === s.lastWorkingKeyIndex);
+    const order = startPos > 0 ? configured.slice(startPos).concat(configured.slice(0, startPos)) : configured;
+
+    let lastErr = null;
+    for(let i=0;i<order.length;i++){
+      const c = order[i];
+      try {
+        const result = await callGeminiWithKey(c.key, model, parts, json);
+        rememberWorkingKeyIndex(c.index);
+        return result;
+      } catch(err){
+        lastErr = err;
+        // try the next configured key regardless of why this one failed
+      }
+    }
+    throw new Error(
+      configured.length > 1
+        ? `All ${configured.length} configured API keys failed. Last error: ${lastErr ? lastErr.message : "unknown error"}`
+        : (lastErr ? lastErr.message : "Request failed.")
+    );
+  }
+
+  const ANALYSIS_INSTRUCTION = `You are NSMQ FormulaGen, a tutor that reads a photo of a science or math question and prepares it for step-by-step solving.
+
+Look at the image and return ONLY a JSON object with exactly this shape, no markdown fences, no commentary:
+
+{
+  "subject": "Physics" | "Chemistry" | "Math" | other short subject label,
+  "extractedQuestion": "the question text as best you can read it from the image",
+  "formula": "the single formula needed to solve this, using standard symbols, e.g. E = hc / \\u03bb",
+  "variables": [ { "symbol": "E", "name": "energy of the photon", "unit": "J", "isConstant": false } , ... one entry per symbol in the formula, marking physical/mathematical constants with isConstant:true ],
+  "constants": [ { "symbol": "h", "name": "Planck's constant", "value": "6.626e-34", "unit": "J*s" }, ... only the constants that appear in the formula, with standard numeric values ],
+  "givenValues": [ { "symbol": "\\u03bb", "name": "wavelength", "value": "500e-9", "unit": "m" }, ... only values explicitly given in the question, extracted with correct units, converted to SI base units where sensible ],
+  "simplifiedFormula": "the formula with all constants multiplied/divided together into a single numeric coefficient, e.g. E = 1.98e-25 / \\u03bb",
+  "simplificationExplanation": "one short block of plain arithmetic showing how the constants combined into that coefficient, e.g. h times c = 6.626e-34 times 3e8 = 1.988e-25",
+  "solutionSteps": [ "step 1: substitute the given value into the simplified formula", "step 2: ...", "step 3: ..." ],
+  "finalAnswer": "the final numeric answer with correct units, e.g. 3.96e-19 J"
+}
+
+Use plain, readable numbers (scientific notation with 'e' or with unicode superscripts is fine, be consistent). If a value in the question uses non-SI units, convert to SI base units for the calculation and note the conversion in solutionSteps. If the image contains more than one question, solve only the first one. Be precise with units throughout.`;
+
+  const RECALC_INSTRUCTION_TEMPLATE = (simplifiedFormula, givens) => `You are NSMQ FormulaGen. The simplified formula is:
+
+${simplifiedFormula}
+
+The given values (possibly edited by the user) are:
+${givens.map(g=>`${g.symbol} = ${g.value} ${g.unit||""}`).join("\n")}
+
+Return ONLY a JSON object with exactly this shape, no markdown fences, no commentary:
+{
+  "solutionSteps": [ "step 1: ...", "step 2: ...", "step 3: ..." ],
+  "finalAnswer": "the final numeric answer with correct units"
+}`;
+
+  /* ============================================================
+     ANALYZE FLOW
+     ============================================================ */
+  function setStatus(msg){
+    $("status").style.display = msg ? "flex" : "none";
+    $("statusText").textContent = msg || "";
+  }
+  function setError(msg){
+    $("errorBox").style.display = msg ? "block" : "none";
+    $("errorBox").textContent = msg || "";
+  }
+
+  $("analyzeBtn").addEventListener("click", async () => {
+    const typedText = $("typedQuestion").value.trim();
+    if(!state.imageBase64 && !typedText) return;
+    setError(null);
+    setStatus("Reading the question and finding the formula…");
+    $("analyzeBtn").disabled = true;
+    try {
+      let parts;
+      if(state.imageBase64){
+        parts = [
+          { text: ANALYSIS_INSTRUCTION },
+          { inline_data: { mime_type: state.imageMime, data: state.imageBase64 } }
+        ];
+      } else {
+        parts = [
+          { text: ANALYSIS_INSTRUCTION + `\n\nThe question was typed directly by the user rather than photographed. Here it is:\n"""\n${typedText}\n"""` }
+        ];
+      }
+      const result = await callGemini(parts, {json:true});
+      state.result = result;
+      state.editedGivens = JSON.parse(JSON.stringify(result.givenValues || []));
+      state.givensDirty = false;
+      renderFormulaStep(result);
+      renderSimplifyStep(result);
+      renderSolveStep(result);
+      setStatus(null);
+      goToStep("stepFormula");
+    } catch(err){
+      setStatus(null);
+      setError(err.message || "Something went wrong analyzing the question.");
+    } finally {
+      updateAnalyzeAvailability();
+    }
+  });
+
+  /* ============================================================
+     RENDER: STEP 2 — FORMULA
+     ============================================================ */
+  function renderFormulaStep(r){
+    $("subjectTag").textContent = (r.subject || "SUBJECT").toUpperCase();
+    $("questionEcho").textContent = r.extractedQuestion ? `“${r.extractedQuestion}”` : "";
+    $("formulaDisplay").textContent = r.formula || "";
+
+    const defList = $("defList");
+    defList.innerHTML = "";
+    (r.variables || []).forEach(v => {
+      const li = document.createElement("li");
+      li.innerHTML = `<span class="def-sym">${v.symbol}</span><span class="def-name">${v.name}${v.unit ? ` <span class="unit">(${v.unit})</span>` : ""}</span>`;
+      defList.appendChild(li);
+    });
+
+    const constUsed = $("constUsedList");
+    constUsed.innerHTML = "";
+    (r.constants || []).forEach(c => {
+      const li = document.createElement("li");
+      li.innerHTML = `<span class="const-sym">${c.symbol}</span><span class="const-name">${c.name}</span><span class="const-value">${c.value} ${c.unit||""}</span>`;
+      constUsed.appendChild(li);
+    });
+    if((r.constants||[]).length === 0){
+      constUsed.innerHTML = `<li style="color:var(--ink-soft); font-style:italic;">No fixed constants in this formula.</li>`;
+    }
+
+    renderGivenInputs();
+    renderSymbolPalette();
+  }
+
+  function renderGivenInputs(){
+    const wrap = $("givenList");
+    wrap.innerHTML = "";
+    if(state.editedGivens.length === 0){
+      wrap.innerHTML = `<p style="font-size:13px; color:var(--ink-soft); font-style:italic; margin:0 0 10px;">No explicit given values were detected — check the question echoed above and edit the formula step if something's missing.</p>`;
+      return;
+    }
+    state.editedGivens.forEach((g, idx) => {
+      const row = document.createElement("div");
+      row.className = "given-row";
+      row.innerHTML = `
+        <label>${g.symbol}</label>
+        <input type="text" class="sym-input" data-idx="${idx}" value="${g.value}">
+        <span class="unit-badge">${g.unit||""}</span>
+      `;
+      wrap.appendChild(row);
+    });
+    wrap.querySelectorAll("input.sym-input").forEach(inp => {
+      inp.addEventListener("input", (e) => {
+        state.editedGivens[e.target.dataset.idx].value = e.target.value;
+        state.givensDirty = true;
+      });
+      inp.addEventListener("focus", (e) => { activeInput = e.target; });
+    });
+  }
+
+  let activeInput = null;
+  function renderSymbolPaletteInto(containerId){
+    const wrap = $(containerId);
+    wrap.innerHTML = "";
+    SYMBOLS.forEach(sym => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.textContent = sym;
+      btn.addEventListener("click", () => {
+        if(activeInput){
+          const start = (typeof activeInput.selectionStart === "number") ? activeInput.selectionStart : activeInput.value.length;
+          const end = (typeof activeInput.selectionEnd === "number") ? activeInput.selectionEnd : activeInput.value.length;
+          const val = activeInput.value;
+          activeInput.value = val.slice(0,start) + sym + val.slice(end);
+          activeInput.dispatchEvent(new Event("input"));
+          activeInput.focus();
+          const pos = start + sym.length;
+          activeInput.setSelectionRange(pos,pos);
+        }
+      });
+      wrap.appendChild(btn);
+    });
+  }
+  function renderSymbolPalette(){
+    renderSymbolPaletteInto("symbolPalette");
+  }
+  // capture-screen palette is available as soon as the page loads, so the
+  // user can insert symbols while typing a question before any analysis runs
+  renderSymbolPaletteInto("captureSymbolPalette");
+  $("typedQuestion").addEventListener("focus", () => { activeInput = $("typedQuestion"); });
+
+  $("continueToSimplify").addEventListener("click", () => goToStep("stepSimplify"));
+
+  /* ============================================================
+     RENDER: STEP 3 — SIMPLIFY
+     ============================================================ */
+  function renderSimplifyStep(r){
+    $("arithBlock").textContent = r.simplificationExplanation || "—";
+    $("simplifiedFormulaBox").textContent = r.simplifiedFormula || r.formula || "";
+  }
+  $("continueToSolve").addEventListener("click", () => goToStep("stepSolve"));
+
+  /* ============================================================
+     RENDER: STEP 4 — SOLVE
+     ============================================================ */
+  function renderSolveStep(r){
+    const list = $("solveSteps");
+    list.innerHTML = "";
+    (r.solutionSteps || []).forEach(step => {
+      const li = document.createElement("li");
+      li.textContent = step;
+      list.appendChild(li);
+    });
+    $("finalAnswer").textContent = r.finalAnswer || "—";
+  }
+
+  $("editValuesBtn").addEventListener("click", () => goToStep("stepFormula"));
+
+  $("startOverBtn").addEventListener("click", () => {
+    state = { imageBase64:null, imageMime:null, result:null, editedGivens:[], givensDirty:false };
+    $("previewWrap").style.display = "none";
+    $("cameraInput").value = ""; $("galleryInput").value = "";
+    $("typedQuestion").value = "";
+    $("typeWrap").style.display = "block";
+    $("orDivider").style.display = "flex";
+    updateAnalyzeAvailability();
+    setError(null); setStatus(null);
+    goToStep("stepCapture");
+  });
+
+  // Recalculate: only re-query Gemini for a fresh solve when the user has
+  // actually edited a given value since the last analysis or recalculation.
+  async function recalcSolve(){
+    if(!state.result || !state.givensDirty) return;
+    setError(null);
+    setStatus("Recalculating with your edited values…");
+    try {
+      const parts = [{ text: RECALC_INSTRUCTION_TEMPLATE(state.result.simplifiedFormula || state.result.formula, state.editedGivens) }];
+      const r2 = await callGemini(parts, {json:true});
+      state.result.solutionSteps = r2.solutionSteps;
+      state.result.finalAnswer = r2.finalAnswer;
+      renderSolveStep(state.result);
+      state.givensDirty = false;
+      setStatus(null);
+    } catch(err){
+      setStatus(null);
+      setError(err.message || "Could not recalculate.");
+    }
+  }
+  // check for edits whenever the user moves toward simplify/solve
+  $("continueToSimplify").addEventListener("click", () => { recalcSolve(); });
+  $("editValuesBtn").addEventListener("click", () => { state.givensDirty = false; });
+
+})();
+</script>
+</body>
+</html>
